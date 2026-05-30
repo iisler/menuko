@@ -1,0 +1,265 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+h2.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.header{padding:1.25rem 0 0.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.title{font-size:18px;font-weight:500;color:var(--color-text-primary)}
+.subtitle{font-size:13px;color:var(--color-text-secondary);margin-top:2px}
+.btn-global{font-size:13px;padding:6px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary);cursor:pointer;display:flex;align-items:center;gap:6px}
+.btn-global:hover{background:var(--color-background-secondary)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;padding:0.75rem 0}
+.card{background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1rem;transition:border-color 0.2s}
+.card.locked{border:1.5px solid #1D9E75;background:var(--color-background-primary)}
+.day-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.day-name{font-size:13px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.04em}
+.protein-badge{font-size:11px;padding:2px 8px;border-radius:var(--border-radius-md);font-weight:500}
+.badge-et{background:#E1F5EE;color:#0F6E56}
+.badge-tavuk{background:#E6F1FB;color:#185FA5}
+.badge-balik{background:#EEEDFE;color:#3C3489}
+.badge-baklagil{background:#FAEEDA;color:#854F0B}
+.main-dish{font-size:15px;font-weight:500;color:var(--color-text-primary);margin-bottom:6px;line-height:1.4}
+.side-dish{font-size:13px;color:var(--color-text-secondary);margin-bottom:8px}
+.time-row{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--color-text-tertiary);margin-bottom:12px}
+.card-actions{display:flex;gap:6px}
+.btn-card{flex:1;font-size:12px;padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-secondary);cursor:pointer;text-align:center}
+.btn-card:hover{background:var(--color-background-secondary)}
+.btn-lock.active{background:#E1F5EE;color:#0F6E56;border-color:#5DCAA5}
+.shopping-section{margin-top:1rem;padding:1rem;background:var(--color-background-secondary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary)}
+.shop-title{font-size:15px;font-weight:500;color:var(--color-text-primary);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.shop-cat{margin-bottom:14px}
+.shop-cat-name{font-size:12px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;padding-bottom:4px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.shop-item{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:14px;color:var(--color-text-primary);cursor:pointer}
+.shop-item input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:#1D9E75}
+.shop-item.checked span{text-decoration:line-through;color:var(--color-text-tertiary)}
+.shuffle-btn{font-size:13px;padding:6px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary);cursor:pointer;display:flex;align-items:center;gap:6px}
+.shuffle-btn:hover{background:var(--color-background-secondary)}
+</style>
+
+<h2 class="sr-only">7 günlük haftalık yemek planı ve alışveriş listesi</h2>
+<div class="header">
+  <div>
+    <div class="title"><i class="ti ti-calendar" aria-hidden="true" style="font-size:18px;vertical-align:-2px;margin-right:6px"></i>Haftalık Yemek Planı</div>
+    <div class="subtitle">2 Haziran – 8 Haziran 2025 • Yaz menüsü</div>
+  </div>
+  <button class="shuffle-btn" onclick="shuffleUnlocked()" aria-label="Kilitli olmayan günleri karıştır">
+    <i class="ti ti-dice" aria-hidden="true"></i> Karıştır
+  </button>
+</div>
+
+<div class="grid" id="mealGrid"></div>
+
+<div class="shopping-section" id="shoppingSection"></div>
+
+<script>
+const DAYS = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"];
+const PROTEINS = {et:"Dana Eti",tavuk:"Tavuk/Hindi",balik:"Balık",baklagil:"Baklagil"};
+
+const ALL_MEALS = {
+  et:[
+    {main:"Biber Dolması",side:"Yoğurtlu salata",time:55,note:null},
+    {main:"Sulu Köfte",side:"Bulgur pilavı",time:50,note:null},
+    {main:"Et Sote",side:"Mevsim salata + Pilav",time:45,note:null},
+    {main:"Bonfile Izgara",side:"Roka-kiraz domates salatası",time:40,note:null},
+    {main:"Kontrafile Sote",side:"Makarna",time:45,note:null},
+    {main:"Dana Güveç",side:"Basmati pilavı",time:55,note:null},
+  ],
+  tavuk:[
+    {main:"Tavuk Sote",side:"Mevsim salata",time:40,note:null},
+    {main:"Tavuk Izgara",side:"Bulgur pilavı + Yeşil salata",time:35,note:null},
+    {main:"Fırın Tavuk",side:"Makarna + Salata",time:55,note:null},
+    {main:"Hindi Rosto",side:"Basmati pilavı",time:55,note:null},
+    {main:"Tavuk Şiş",side:"Cacık + Bulgur pilavı",time:45,note:null},
+    {main:"Zeytinyağlı Tavuk",side:"Makarna",time:50,note:null},
+  ],
+  balik:[
+    {main:"Levrek Izgara",side:"Taze yeşil salata",time:35,note:"Süt ürünü yok"},
+    {main:"Çipura Fırın",side:"Limonlu roka salatası",time:40,note:"Süt ürünü yok"},
+    {main:"Somon Izgara",side:"Yeşil salata + Limon",time:30,note:"Süt ürünü yok"},
+    {main:"Çipura Izgara",side:"Mevsim salatası",time:35,note:"Süt ürünü yok"},
+    {main:"Levrek Buğulama",side:"Domates-salatalık salatası",time:40,note:"Süt ürünü yok"},
+  ],
+  baklagil:[
+    {main:"Nohut Yemeği",side:"Bulgur pilavı",time:50,note:null},
+    {main:"Yeşil Mercimek",side:"Basmati pilavı",time:40,note:null},
+    {main:"Kuru Fasulye",side:"Pilav",time:55,note:null},
+    {main:"Taze Fasulye",side:"Pilav + Salata",time:45,note:null},
+    {main:"Ayran Aşı Çorbası",side:"Bulgur pilavı",time:40,note:"Yaz menüsü"},
+  ]
+};
+
+const SHOPPING_ITEMS = {
+  et:[
+    {name:"Dana kıyma 500g",cat:"et"},{name:"Dana kuşbaşı 400g",cat:"et"},
+    {name:"Bonfile 300g",cat:"et"},{name:"Dana güveç eti 500g",cat:"et"}
+  ],
+  tavuk:[
+    {name:"Tavuk göğsü 600g",cat:"et"},{name:"Tavuk but 4 adet",cat:"et"},
+    {name:"Hindi but 2 adet",cat:"et"},{name:"Tavuk şiş için but 500g",cat:"et"}
+  ],
+  balik:[
+    {name:"Levrek 3 adet (~400g)",cat:"et"},{name:"Çipura 3 adet (~400g)",cat:"et"},
+    {name:"Somon fileto 400g",cat:"et"}
+  ],
+  nohut:[{name:"Nohut 400g",cat:"bakliyat"}],
+  mercimek:[{name:"Yeşil mercimek 400g",cat:"bakliyat"}],
+  fasulye:[{name:"Kuru fasulye 400g",cat:"bakliyat"},{name:"Taze fasulye 500g",cat:"sebze"}],
+  ayranasi:[{name:"Yoğurt 1kg",cat:"sut"},{name:"Çeşitli tahıllar (arpa vb.)",cat:"bakliyat"}],
+  sebze_genel:[
+    {name:"Domates 1kg",cat:"sebze"},{name:"Salatalık 4 adet",cat:"sebze"},
+    {name:"Biber (dolmalık) 8 adet",cat:"sebze"},{name:"Marul/roka 2 demet",cat:"sebze"},
+    {name:"Limon 4 adet",cat:"sebze"},{name:"Kabak 3 adet",cat:"sebze"},
+    {name:"Havuç 500g",cat:"sebze"},{name:"Patates 1kg",cat:"sebze"},
+    {name:"Kiraz domates 250g",cat:"sebze"}
+  ],
+  sut:[
+    {name:"Yumurta 12 adet",cat:"sut"},{name:"Yoğurt 500g",cat:"sut"}
+  ],
+  diger:[
+    {name:"Bulgur 500g",cat:"bakliyat"},{name:"Basmati pirinci 1kg",cat:"bakliyat"},
+    {name:"Zeytinyağı 1L",cat:"diger"}
+  ]
+};
+
+let plan = [];
+let locked = [false,false,false,false,false,false,false];
+
+const SCHEMA = [
+  {day:0,protein:"et",weekend:false},
+  {day:1,protein:"tavuk",weekend:false},
+  {day:2,protein:"baklagil",weekend:false},
+  {day:3,protein:"tavuk",weekend:false},
+  {day:4,protein:"balik",weekend:false},
+  {day:5,protein:"balik",weekend:true},
+  {day:6,protein:"et",weekend:true},
+];
+
+function pickRandom(arr,exclude=[]){
+  const pool=arr.filter(m=>!exclude.includes(m.main));
+  if(!pool.length)return arr[Math.floor(Math.random()*arr.length)];
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+function generatePlan(){
+  const used=[];
+  return SCHEMA.map(s=>{
+    const meal=pickRandom(ALL_MEALS[s.protein],used);
+    used.push(meal.main);
+    return{...meal,protein:s.protein,weekend:s.weekend};
+  });
+}
+
+function refreshDay(idx){
+  const used=plan.filter((_,i)=>i!==idx).map(m=>m.main);
+  const s=SCHEMA[idx];
+  const meal=pickRandom(ALL_MEALS[s.protein],used);
+  plan[idx]={...meal,protein:s.protein,weekend:s.weekend};
+}
+
+function shuffleUnlocked(){
+  const used=plan.filter((_,i)=>locked[i]).map(m=>m.main);
+  SCHEMA.forEach((s,i)=>{
+    if(locked[i])return;
+    const meal=pickRandom(ALL_MEALS[s.protein],used);
+    used.push(meal.main);
+    plan[i]={...meal,protein:s.protein,weekend:s.weekend};
+  });
+  render();
+}
+
+function toggleLock(i){
+  locked[i]=!locked[i];
+  render();
+}
+
+function replaceDay(i){
+  if(locked[i])return;
+  refreshDay(i);
+  render();
+}
+
+function badgeClass(p){
+  return{et:"badge-et",tavuk:"badge-tavuk",balik:"badge-balik",baklagil:"badge-baklagil"}[p];
+}
+
+function buildShopping(){
+  const items={et:[],sebze:[],bakliyat:[],sut:[],diger:[]};
+  const addItem=(obj)=>{
+    if(!items[obj.cat])return;
+    if(!items[obj.cat].find(x=>x.name===obj.name))items[obj.cat].push({name:obj.name,checked:false});
+  };
+  plan.forEach(m=>{
+    if(m.protein==="et"){
+      SHOPPING_ITEMS.et.slice(0,1).forEach(addItem);
+      SHOPPING_ITEMS.et.slice(2,3).forEach(addItem);
+    }
+    if(m.protein==="tavuk"){
+      SHOPPING_ITEMS.tavuk.slice(0,2).forEach(addItem);
+    }
+    if(m.protein==="balik"){
+      SHOPPING_ITEMS.balik.slice(0,2).forEach(addItem);
+    }
+    if(m.main==="Nohut Yemeği")SHOPPING_ITEMS.nohut.forEach(addItem);
+    if(m.main==="Yeşil Mercimek")SHOPPING_ITEMS.mercimek.forEach(addItem);
+    if(m.main.includes("Fasulye"))SHOPPING_ITEMS.fasulye.forEach(addItem);
+    if(m.main==="Ayran Aşı Çorbası")SHOPPING_ITEMS.ayranasi.forEach(addItem);
+  });
+  SHOPPING_ITEMS.sebze_genel.forEach(addItem);
+  SHOPPING_ITEMS.sut.forEach(addItem);
+  SHOPPING_ITEMS.diger.forEach(addItem);
+  return items;
+}
+
+let shopState={et:[],sebze:[],bakliyat:[],sut:[],diger:[]};
+
+function toggleCheck(cat,idx){
+  shopState[cat][idx].checked=!shopState[cat][idx].checked;
+  renderShopping();
+}
+
+function renderShopping(){
+  const catNames={et:"Et & Balık",sebze:"Sebze & Meyve",bakliyat:"Bakliyat & Kuru Gıda",sut:"Süt Ürünleri & Yumurta",diger:"Diğer"};
+  let html=`<div class="shop-title"><i class="ti ti-shopping-cart" aria-hidden="true" style="font-size:16px"></i>Alışveriş Listesi</div>`;
+  Object.entries(shopState).forEach(([cat,items])=>{
+    if(!items.length)return;
+    html+=`<div class="shop-cat"><div class="shop-cat-name">${catNames[cat]}</div>`;
+    items.forEach((item,i)=>{
+      html+=`<label class="shop-item${item.checked?' checked':''}">
+        <input type="checkbox" ${item.checked?'checked':''} onchange="toggleCheck('${cat}',${i})">
+        <span>${item.name}</span>
+      </label>`;
+    });
+    html+=`</div>`;
+  });
+  document.getElementById("shoppingSection").innerHTML=html;
+}
+
+function render(){
+  const grid=document.getElementById("mealGrid");
+  grid.innerHTML=plan.map((m,i)=>{
+    const isLocked=locked[i];
+    return`<div class="card${isLocked?' locked':''}" id="card-${i}">
+      <div class="day-header">
+        <span class="day-name">${DAYS[i]}</span>
+        <span class="protein-badge ${badgeClass(m.protein)}">${PROTEINS[m.protein]}</span>
+      </div>
+      <div class="main-dish">${m.main}</div>
+      <div class="side-dish">${m.side}</div>
+      <div class="time-row"><i class="ti ti-clock" aria-hidden="true" style="font-size:13px"></i>${m.time} dk${m.note?` • <em style="font-size:11px;color:var(--color-text-tertiary)">${m.note}</em>`:''}</div>
+      <div class="card-actions">
+        <button class="btn-card btn-lock${isLocked?' active':''}" onclick="toggleLock(${i})" aria-label="${isLocked?'Kilidi aç':'Kilitle'}">
+          <i class="ti ti-${isLocked?'lock-open':'lock'}" aria-hidden="true"></i> ${isLocked?'Kilitli':'Kilitle'}
+        </button>
+        <button class="btn-card" onclick="replaceDay(${i})" ${isLocked?'disabled style="opacity:0.4;cursor:not-allowed"':''} aria-label="Bu günü yenile">
+          <i class="ti ti-refresh" aria-hidden="true"></i> Değiştir
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+  shopState=buildShopping();
+  renderShopping();
+}
+
+plan=generatePlan();
+render();
+</script>
