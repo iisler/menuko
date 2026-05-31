@@ -28,6 +28,7 @@
 .card-actions { display: flex; gap: 6px; }
 .card-btn { flex: 1; padding: 6px 8px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: transparent; font-size: 12px; color: var(--color-text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; }
 .card-btn:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
+.card-btn.btn-lock-active { background: #E6F1FB; color: #185FA5; border-color: #378ADD; }
 .section-title { font-size: 16px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 1rem; padding-top: 0.5rem; border-top: 0.5px solid var(--color-border-tertiary); }
 .shopping-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
 .shop-cat { background: var(--color-background-secondary); border-radius: var(--border-radius-lg); padding: 1rem; }
@@ -46,7 +47,7 @@
     <div class="header-sub">Haziran · Yaz menüsü · 3 kişi</div>
     <div class="header-title">Haftalık Yemek Planı</div>
   </div>
-  <button class="shuffle-btn" onclick="shuffleAll()">
+  <button class="shuffle-btn" onclick="shuffleUnlocked()">
     <i class="ti ti-refresh" aria-hidden="true"></i> Karıştır
   </button>
 </div>
@@ -57,124 +58,154 @@
 
 <script>
 const DAYS = ['Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi','Pazar'];
+const PATTERN = ['dana','tavuk','balik','baklagil','dana','balik','tavuk'];
 
-function ytLink(query) {
-  return 'https://www.youtube.com/results?search_query=' + encodeURIComponent(query + ' tarifi türkçe');
+function ytLink(q) {
+  return 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q + ' tarifi türkçe');
 }
 
 const ALL_MEALS = {
   dana: [
-    { main: 'Kontrafile Izgara', side: 'Basmati pilavı, mevsim salatası', time: '35 dk', note: 'Demir emilimi için yanına bol maydanozlu domates ekleyin.', yt: 'kontrafile ızgara tarifi', shopping: ['Dana kontrafile (500g)'] },
-    { main: 'Dana Et Sote, Biber & Domates', side: 'Bulgur pilavı, cacık', time: '45 dk', note: 'C vitamini açısından zengin biberler, demirin emilimini artırır.', yt: 'dana et sote biber domatesli', shopping: ['Dana kuşbaşı (500g)', 'Renkli biber (3 adet)', 'Domates (2 adet)'] },
-    { main: 'Sulu Köfte, Patatesli', side: 'Pilav, mevsim salatası', time: '55 dk', note: 'Maydanozlu sos köfteye hafiflik katar, yaz için ideal.', yt: 'sulu köfte patatesli tarifi', shopping: ['Dana kıyma (500g)', 'Patates (3 adet)'] },
-    { main: 'Bonfile, Kekik-Limon Marineli', side: 'Fırın domates, roka salatası', time: '40 dk', note: 'Limon marinasyonun hem aromasını hem besin değerini yükseltir.', yt: 'bonfile limon kekik marine tarifi', shopping: ['Dana bonfile (500g)', 'Taze kekik', 'Roka'] },
-    { main: 'Biber Dolması (Dana Kıymalı)', side: 'Yoğurt, mevsim salatası', time: '60 dk', note: 'İnce bulgur eklenmesi hafif bir yaz versiyonu yaratır.', yt: 'dana kıymalı biber dolması tarifi', shopping: ['Dana kıyma (400g)', 'Dolmalık biber (6 adet)', 'Bulgur'] },
-    { main: 'Sumak Soslu Dana Köfte Izgara', side: 'Bulgur tabboulesi, ayran', time: '45 dk', note: 'Sumak hem sindirime yardımcı hem yaz yemeklerine ferahlık katar.', yt: 'sumak soslu köfte ızgara tarifi', shopping: ['Dana kıyma (500g)', 'Sumak', 'Maydanoz (demet)', 'Nane'] },
-    { main: 'Dana Güveç, Yaz Sebzeli', side: 'Ekmek, yeşil salata', time: '70 dk', note: 'Kabak ve domates bu mevsimde çok taze; harika bir yaz güveci.', yt: 'dana eti güveç kabak domatesli tarifi', shopping: ['Dana kuşbaşı (500g)', 'Kabak (2 adet)', 'Domates (3 adet)'], weekend: true },
+    { main:'Kontrafile Izgara', side:'Basmati pilavı, mevsim salatası', time:'35 dk', note:'Demir emilimi için yanına bol maydanozlu domates ekleyin.', yt:'kontrafile ızgara', shopping:['Dana kontrafile (500g)'] },
+    { main:'Dana Et Sote, Biber & Domates', side:'Bulgur pilavı, cacık', time:'45 dk', note:'C vitamini açısından zengin biberler, demirin emilimini artırır.', yt:'dana et sote biber domatesli', shopping:['Dana kuşbaşı (500g)','Renkli biber (3 adet)','Domates (2 adet)'] },
+    { main:'Sulu Köfte, Patatesli', side:'Pilav, mevsim salatası', time:'55 dk', note:'Maydanozlu sos köfteye hafiflik katar, yaz için ideal.', yt:'sulu köfte patatesli', shopping:['Dana kıyma (500g)','Patates (3 adet)'] },
+    { main:'Bonfile, Kekik-Limon Marineli', side:'Fırın domates, roka salatası', time:'40 dk', note:'Limon marinasyonun hem aromasını hem besin değerini yükseltir.', yt:'bonfile limon kekik marine', shopping:['Dana bonfile (500g)','Taze kekik','Roka'] },
+    { main:'Biber Dolması (Dana Kıymalı)', side:'Yoğurt, mevsim salatası', time:'60 dk', note:'İnce bulgur eklenmesi hafif bir yaz versiyonu yaratır.', yt:'dana kıymalı biber dolması', shopping:['Dana kıyma (400g)','Dolmalık biber (6 adet)','Bulgur'] },
+    { main:'Sumak Soslu Dana Köfte Izgara', side:'Bulgur tabboulesi, ayran', time:'45 dk', note:'Sumak hem sindirime yardımcı hem yaz yemeklerine ferahlık katar.', yt:'sumak soslu köfte ızgara', shopping:['Dana kıyma (500g)','Sumak','Maydanoz (demet)','Nane'] },
+    { main:'Dana Güveç, Yaz Sebzeli', side:'Ekmek, yeşil salata', time:'70 dk', note:'Kabak ve domates bu mevsimde çok taze; harika bir yaz güveci.', yt:'dana eti güveç kabak domatesli', shopping:['Dana kuşbaşı (500g)','Kabak (2 adet)','Domates (3 adet)'] },
   ],
   tavuk: [
-    { main: 'Tavuk Sote, Biberli', side: 'Basmati pilavı, cacık', time: '35 dk', note: 'Biberli sote yüksek C vitamini içerir; bağışıklık için iyi.', yt: 'biberli tavuk sote tarifi', shopping: ['Tavuk göğsü (600g)', 'Renkli biber (2 adet)'] },
-    { main: 'Izgara Tavuk, Limon-Sarımsak', side: 'Makarna (zeytinyağlı), yeşil salata', time: '30 dk', note: 'Yağsız pişirme tekniği yaz aylarında hafifliği korur.', yt: 'limon sarımsak ızgara tavuk tarifi', shopping: ['Tavuk göğsü (600g)', 'Limon (2 adet)'] },
-    { main: 'Kekik-Hardal Fırın Tavuk But', side: 'Fırın patates, mevsim salatası', time: '55 dk', note: 'Hardal ve kekik marinadı ete derin bir aroma katar.', yt: 'hardal kekik fırın tavuk but tarifi', shopping: ['Tavuk but (6 adet)', 'Patates (4 adet)', 'Hardal (kavanoz)'] },
-    { main: 'Tavuk Şiş, Közlenmiş Biberli', side: 'Bulgur pilavı, yoğurt', time: '40 dk', note: 'Közlenmiş biber antioksidan değeriyle yaz favorisi.', yt: 'tavuk şiş közlenmiş biberli tarifi', shopping: ['Tavuk göğsü (600g)', 'Renkli biber (3 adet)'] },
-    { main: 'Zerdeçallı Tavuk Çorbası', side: 'Ekmek, yeşil salata', time: '40 dk', note: 'Zerdeçal anti-enflamatuar etkisiyle bağışıklığı destekler.', yt: 'zerdeçallı tavuk çorbası tarifi', shopping: ['Tavuk but (2 adet)', 'Zerdeçal', 'Havuç (2 adet)', 'Şehriye'] },
-    { main: 'Tahin-Limon Soslu Tavuk But', side: 'Makarna, mevsim salatası', time: '45 dk', note: 'Tahin kalsiyum bakımından zengin; 17 yaşındaki için ideal.', yt: 'tahin limon soslu tavuk tarifi', shopping: ['Tavuk but (6 adet)', 'Tahin (kavanoz)', 'Limon'] },
-    { main: 'Tavuk Dolması (Biberli)', side: 'Pilav, cacık', time: '60 dk', note: 'Dolma içindeki pirinç doyurucu; yanındaki cacık serinletici.', yt: 'tavuk kıymalı biber dolması tarifi', shopping: ['Tavuk kıyma (400g)', 'Dolmalık biber (6 adet)'] },
+    { main:'Tavuk Sote, Biberli', side:'Basmati pilavı, cacık', time:'35 dk', note:'Biberli sote yüksek C vitamini içerir; bağışıklık için iyi.', yt:'biberli tavuk sote', shopping:['Tavuk göğsü (600g)','Renkli biber (2 adet)'] },
+    { main:'Izgara Tavuk, Limon-Sarımsak', side:'Makarna (zeytinyağlı), yeşil salata', time:'30 dk', note:'Yağsız pişirme tekniği yaz aylarında hafifliği korur.', yt:'limon sarımsak ızgara tavuk', shopping:['Tavuk göğsü (600g)','Limon (2 adet)'] },
+    { main:'Kekik-Hardal Fırın Tavuk But', side:'Fırın patates, mevsim salatası', time:'55 dk', note:'Hardal ve kekik marinadı ete derin bir aroma katar.', yt:'hardal kekik fırın tavuk but', shopping:['Tavuk but (6 adet)','Patates (4 adet)','Hardal (kavanoz)'] },
+    { main:'Tavuk Şiş, Közlenmiş Biberli', side:'Bulgur pilavı, yoğurt', time:'40 dk', note:'Közlenmiş biber antioksidan değeriyle yaz favorisi.', yt:'tavuk şiş közlenmiş biberli', shopping:['Tavuk göğsü (600g)','Renkli biber (3 adet)'] },
+    { main:'Zerdeçallı Tavuk Çorbası', side:'Ekmek, yeşil salata', time:'40 dk', note:'Zerdeçal anti-enflamatuar etkisiyle bağışıklığı destekler.', yt:'zerdeçallı tavuk çorbası', shopping:['Tavuk but (2 adet)','Zerdeçal','Havuç (2 adet)','Şehriye'] },
+    { main:'Tahin-Limon Soslu Tavuk But', side:'Makarna, mevsim salatası', time:'45 dk', note:'Tahin kalsiyum bakımından zengin; 17 yaşındaki için ideal.', yt:'tahin limon soslu tavuk but', shopping:['Tavuk but (6 adet)','Tahin (kavanoz)','Limon'] },
+    { main:'Tavuk Dolması (Biberli)', side:'Pilav, cacık', time:'60 dk', note:'Dolma içindeki pirinç doyurucu; yanındaki cacık serinletici.', yt:'tavuk kıymalı biber dolması', shopping:['Tavuk kıyma (400g)','Dolmalık biber (6 adet)'] },
   ],
   balik: [
-    { main: 'Izgara Levrek, Limon-Dereotu', side: 'Roka-domates salatası, ızgara kabak', time: '25 dk', note: 'Dereotu sindirime yardımcı; balıkla klasik bir Akdeniz eşleşmesi.', yt: 'ızgara levrek dereotlu tarifi', shopping: ['Levrek (3 adet)', 'Dereotu', 'Kabak (2 adet)', 'Roka'] },
-    { main: 'Fırın Somon, Kapari Soslu', side: 'Yeşil salata, limon', time: '30 dk', note: 'Somon omega-3 bakımından en zengin balık; beyin ve kalp için.', yt: 'fırın somon kapari soslu tarifi', shopping: ['Somon fileto (600g)', 'Kapari (kavanoz)', 'Limon (2 adet)'] },
-    { main: 'Kağıtta Çupra Fırında', side: 'Bol yeşil salata, maydanoz', time: '35 dk', note: 'Kağıtta pişirme hem yağ kullanmaz hem nemi korur.', yt: 'kağıtta çupra fırında tarifi', shopping: ['Çupra (3 adet)', 'Pişirme kağıdı', 'Kiraz domates'] },
-    { main: 'Hamsi Tava (Mısır Unlu)', side: 'Roka salatası, limon', time: '20 dk', note: 'Hamsi en ekonomik omega-3 kaynağı; mısır unu hafiflik sağlar.', yt: 'mısır unlu hamsi tava tarifi', shopping: ['Hamsi (700g)', 'Mısır unu'] },
-    { main: 'Uskumru Dolması, Zeytinyağlı', side: 'Mevsim salatası, limon', time: '50 dk', note: 'Uskumru B12 vitamini bakımından oldukça zengin bir balıktır.', yt: 'uskumru dolması zeytinyağlı tarifi', shopping: ['Uskumru (3 adet)', 'Ceviz', 'Kuru üzüm'], weekend: true },
-    { main: 'Pisi Balığı Güveç, Domates-Sarımsak', side: 'Yeşil salata, ekmek', time: '40 dk', note: 'Hafif, az yağlı yaz balık yemeği; sarımsak bağışıklığı güçlendirir.', yt: 'pisi balığı güveç domates sarımsaklı tarifi', shopping: ['Pisi balığı (600g)', 'Domates (3 adet)'] },
+    { main:'Izgara Levrek, Limon-Dereotu', side:'Roka-domates salatası, ızgara kabak', time:'25 dk', note:'Dereotu sindirime yardımcı; balıkla klasik bir Akdeniz eşleşmesi.', yt:'ızgara levrek dereotlu', shopping:['Levrek (3 adet)','Dereotu','Kabak (2 adet)','Roka'] },
+    { main:'Fırın Somon, Kapari Soslu', side:'Yeşil salata, limon', time:'30 dk', note:'Somon omega-3 bakımından en zengin balık; beyin ve kalp için.', yt:'fırın somon kapari soslu', shopping:['Somon fileto (600g)','Kapari (kavanoz)','Limon (2 adet)'] },
+    { main:'Kağıtta Çupra Fırında', side:'Bol yeşil salata, maydanoz', time:'35 dk', note:'Kağıtta pişirme hem yağ kullanmaz hem nemi korur.', yt:'kağıtta çupra fırında', shopping:['Çupra (3 adet)','Pişirme kağıdı','Kiraz domates'] },
+    { main:'Hamsi Tava (Mısır Unlu)', side:'Roka salatası, limon', time:'20 dk', note:'Hamsi en ekonomik omega-3 kaynağı; mısır unu hafiflik sağlar.', yt:'mısır unlu hamsi tava', shopping:['Hamsi (700g)','Mısır unu'] },
+    { main:'Uskumru Dolması, Zeytinyağlı', side:'Mevsim salatası, limon', time:'50 dk', note:'Uskumru B12 vitamini bakımından oldukça zengindir.', yt:'uskumru dolması zeytinyağlı', shopping:['Uskumru (3 adet)','Ceviz','Kuru üzüm'] },
+    { main:'Pisi Balığı Güveç, Domates-Sarımsak', side:'Yeşil salata, ekmek', time:'40 dk', note:'Hafif, az yağlı yaz balık yemeği; sarımsak bağışıklığı güçlendirir.', yt:'pisi balığı güveç domates sarımsaklı', shopping:['Pisi balığı (600g)','Domates (3 adet)'] },
   ],
   baklagil: [
-    { main: 'Nohut Yemeği, Domatesli', side: 'Pilav, yoğurt', time: '35 dk', note: 'Nohut+pilav tam protein oluşturur; yoğurt kalsiyumu tamamlar.', yt: 'domatesli nohut yemeği tarifi', shopping: ['Haşlanmış nohut (2 kutu)', 'Domates (3 adet)'] },
-    { main: 'Yeşil Mercimek Çorbası', side: 'Ekmek, yeşil salata', time: '35 dk', note: 'Yaz için hafif ama doyurucu; demir kaynağı.', yt: 'yeşil mercimek çorbası tarifi', shopping: ['Yeşil mercimek (300g)', 'Havuç (2 adet)', 'Kereviz sapı'] },
-    { main: 'Zerdeçallı Nohut Köftesi', side: 'Bulgur salatası, yoğurt', time: '40 dk', note: 'Bitkisel protein + zerdeçal kombinasyonu güçlü bir besin deposu.', yt: 'zerdeçallı nohut köftesi tarifi', shopping: ['Haşlanmış nohut (2 kutu)', 'Zerdeçal', 'Kimyon'] },
-    { main: 'Ayran Aşı Çorbası', side: 'Ekmek, mevsim salatası', time: '30 dk', note: 'Geleneksel yaz çorbası; ayran probiyotikleri sindirim sağlığı için.', yt: 'ayran aşı çorbası tarifi', shopping: ['Ayran (1L)', 'Pirinç (1 su bardağı)', 'Yumurta (2 adet)', 'Nane (kurutulmuş)'] },
-    { main: 'Taze Fasulye, Zeytinyağlı', side: 'Pilav, yoğurt', time: '40 dk', note: 'Zeytinyağlı pişirme yaz için en hafif ve en doğru teknik.', yt: 'zeytinyağlı taze fasulye tarifi', shopping: ['Taze fasulye (500g)', 'Domates (2 adet)'] },
-    { main: 'Kabak Yemeği, Yoğurtlu', side: 'Pilav, salata', time: '30 dk', note: 'Kabak yaz aylarının en hafif sebzesi; yüksek su içeriği serinletir.', yt: 'yoğurtlu kabak yemeği tarifi', shopping: ['Kabak (4 adet)', 'Yoğurt (500g)'] },
+    { main:'Nohut Yemeği, Domatesli', side:'Pilav, yoğurt', time:'35 dk', note:'Nohut+pilav tam protein oluşturur; yoğurt kalsiyumu tamamlar.', yt:'domatesli nohut yemeği', shopping:['Haşlanmış nohut (2 kutu)','Domates (3 adet)'] },
+    { main:'Yeşil Mercimek Çorbası', side:'Ekmek, yeşil salata', time:'35 dk', note:'Yaz için hafif ama doyurucu; demir kaynağıdır.', yt:'yeşil mercimek çorbası', shopping:['Yeşil mercimek (300g)','Havuç (2 adet)','Kereviz sapı'] },
+    { main:'Zerdeçallı Nohut Köftesi', side:'Bulgur salatası, yoğurt', time:'40 dk', note:'Bitkisel protein + zerdeçal kombinasyonu güçlü bir besin deposu.', yt:'zerdeçallı nohut köftesi', shopping:['Haşlanmış nohut (2 kutu)','Zerdeçal','Kimyon'] },
+    { main:'Ayran Aşı Çorbası', side:'Ekmek, mevsim salatası', time:'30 dk', note:'Geleneksel yaz çorbası; ayran probiyotikleri sindirim sağlığı için.', yt:'ayran aşı çorbası', shopping:['Ayran (1L)','Pirinç (1 su bardağı)','Yumurta (2 adet)','Nane (kurutulmuş)'] },
+    { main:'Taze Fasulye, Zeytinyağlı', side:'Pilav, yoğurt', time:'40 dk', note:'Zeytinyağlı pişirme yaz için en hafif ve en doğru teknik.', yt:'zeytinyağlı taze fasulye', shopping:['Taze fasulye (500g)','Domates (2 adet)'] },
+    { main:'Kabak Yemeği, Yoğurtlu', side:'Pilav, salata', time:'30 dk', note:'Kabak yaz aylarının en hafif sebzesi; yüksek su içeriği serinletir.', yt:'yoğurtlu kabak yemeği', shopping:['Kabak (4 adet)','Yoğurt (500g)'] },
   ],
-  patlican: [
-    { main: 'İmam Bayıldı', side: 'Pilav, yoğurt', time: '50 dk', note: 'Yetişkinler için; 17 yaşındaki için ayrıca biber dolması yapılabilir.', yt: 'imam bayıldı tarifi', shopping: ['Patlıcan (3 adet)', 'Domates (3 adet)', 'Biber (2 adet)'], adultOnly: true },
-    { main: 'Patlıcan Musakka (Yetişkin)', side: 'Pilav, yeşil salata', time: '65 dk', note: 'Dana kıymalı musakka; gençler için yanında ayrı köfte yapılabilir.', yt: 'patlıcan musakka tarifi', shopping: ['Patlıcan (3 adet)', 'Dana kıyma (300g)'], adultOnly: true, weekend: true },
-  ]
 };
 
-const PATTERN = ['dana','tavuk','balik','baklagil','dana','balik','tavuk'];
-let plan = [];
-let locked = Array(7).fill(false);
+// STATE — tek kaynak
+const state = {
+  plan: Array(7).fill(null),   // her slot: { type, meal }
+  locked: Array(7).fill(false)
+};
 
-function pickMeal(type, usedNames) {
-  const pool = ALL_MEALS[type].filter(m => !usedNames.includes(m.main));
+function pickMeal(type, exclude) {
+  const pool = ALL_MEALS[type].filter(m => !exclude.includes(m.main));
   return pool.length ? pool[Math.floor(Math.random() * pool.length)] : ALL_MEALS[type][0];
 }
 
-function generatePlan() {
-  const usedNames = locked.map((l, i) => l ? plan[i]?.meal?.main : null).filter(Boolean);
-  const newPlan = [];
+function buildPlan() {
+  const used = [];
   for (let i = 0; i < 7; i++) {
-    if (locked[i]) { newPlan[i] = plan[i]; continue; }
-    const meal = pickMeal(PATTERN[i], usedNames);
-    usedNames.push(meal.main);
-    newPlan[i] = { type: PATTERN[i], meal, day: i };
+    if (state.locked[i] && state.plan[i]) {
+      used.push(state.plan[i].meal.main);
+      continue;
+    }
+    const meal = pickMeal(PATTERN[i], used);
+    used.push(meal.main);
+    state.plan[i] = { type: PATTERN[i], meal };
   }
-  plan = newPlan;
-  renderDays();
-  renderShopping();
 }
 
-function shuffleAll() { locked = Array(7).fill(false); generatePlan(); }
-function toggleLock(i) { locked[i] = !locked[i]; renderDays(); }
+function shuffleUnlocked() {
+  // Kilitli olmayanları sıfırla, kilitlilere dokunma
+  for (let i = 0; i < 7; i++) {
+    if (!state.locked[i]) state.plan[i] = null;
+  }
+  buildPlan();
+  render();
+}
+
+function toggleLock(i) {
+  state.locked[i] = !state.locked[i];
+  render();  // plan değişmiyor, sadece görünüm güncelleniyor
+}
+
 function changeDay(i) {
-  const used = plan.map((p, idx) => idx !== i ? p?.meal?.main : null).filter(Boolean);
-  plan[i] = { type: PATTERN[i], meal: pickMeal(PATTERN[i], used), day: i };
-  renderDays(); renderShopping();
+  const used = state.plan.map((p, idx) => idx !== i && p ? p.meal.main : null).filter(Boolean);
+  state.plan[i] = { type: PATTERN[i], meal: pickMeal(PATTERN[i], used) };
+  renderShopping();
+  // Sadece o kartı güncelle
+  const card = document.querySelector(`[data-day="${i}"]`);
+  if (card) card.outerHTML = buildCard(i);
+  attachEvents();
 }
 
 const typeLabel = { dana:'Dana', tavuk:'Tavuk/Hindi', balik:'Balık', baklagil:'Baklagil' };
 const typeClass = { dana:'pb-dana', tavuk:'pb-tavuk', balik:'pb-balik', baklagil:'pb-baklagil' };
 
-function renderDays() {
-  document.getElementById('daysGrid').innerHTML = plan.map((p, i) => {
-    const m = p.meal;
-    const lk = locked[i];
-    return `<div class="day-card ${lk ? 'locked' : ''}">
-      <div class="day-header">
-        <span class="day-name">${DAYS[i]}</span>
-        ${lk ? '<span class="lock-badge"><i class="ti ti-lock" style="font-size:11px"></i> Kilitli</span>' : ''}
-      </div>
-      <span class="protein-badge ${typeClass[p.type]}">${typeLabel[p.type]}</span>
-      ${m.adultOnly ? '<div class="adult-note"><i class="ti ti-info-circle" style="font-size:11px;vertical-align:-1px"></i> Patlıcan içerir · Sadece yetişkin</div>' : ''}
-      <div class="main-dish">${m.main}</div>
-      <div class="side-dish"><i class="ti ti-bowl-spoon" style="font-size:12px;vertical-align:-1px;margin-right:4px" aria-hidden="true"></i>${m.side}</div>
-      <div class="cook-time"><i class="ti ti-clock" style="font-size:12px" aria-hidden="true"></i>${m.time}</div>
-      <div class="nutrition-note"><i class="ti ti-leaf" style="font-size:11px;vertical-align:-1px;margin-right:3px" aria-hidden="true"></i>${m.note}</div>
-      <a class="yt-link" href="${ytLink(m.yt)}" target="_blank" rel="noopener">
-        <i class="ti ti-brand-youtube" style="font-size:14px" aria-hidden="true"></i> YouTube'da tarif izle
-      </a>
-      <div class="card-actions">
-        <button class="card-btn" onclick="toggleLock(${i})">
-          <i class="ti ti-${lk ? 'lock-open' : 'lock'}" aria-hidden="true"></i> ${lk ? 'Kilidi Aç' : 'Kilitle'}
-        </button>
-        <button class="card-btn" onclick="changeDay(${i})">
-          <i class="ti ti-refresh" aria-hidden="true"></i> Değiştir
-        </button>
-      </div>
-    </div>`;
-  }).join('');
+function buildCard(i) {
+  const p = state.plan[i];
+  const m = p.meal;
+  const lk = state.locked[i];
+  return `<div class="day-card ${lk ? 'locked' : ''}" data-day="${i}">
+    <div class="day-header">
+      <span class="day-name">${DAYS[i]}</span>
+      ${lk ? '<span class="lock-badge"><i class="ti ti-lock" style="font-size:11px"></i> Kilitli</span>' : ''}
+    </div>
+    <span class="protein-badge ${typeClass[p.type]}">${typeLabel[p.type]}</span>
+    ${m.adultOnly ? '<div class="adult-note"><i class="ti ti-info-circle" style="font-size:11px;vertical-align:-1px"></i> Patlıcan içerir · Sadece yetişkin</div>' : ''}
+    <div class="main-dish">${m.main}</div>
+    <div class="side-dish"><i class="ti ti-bowl-spoon" style="font-size:12px;vertical-align:-1px;margin-right:4px" aria-hidden="true"></i>${m.side}</div>
+    <div class="cook-time"><i class="ti ti-clock" style="font-size:12px" aria-hidden="true"></i> ${m.time}</div>
+    <div class="nutrition-note"><i class="ti ti-leaf" style="font-size:11px;vertical-align:-1px;margin-right:3px" aria-hidden="true"></i>${m.note}</div>
+    <a class="yt-link" href="${ytLink(m.yt)}" target="_blank" rel="noopener">
+      <i class="ti ti-brand-youtube" style="font-size:14px" aria-hidden="true"></i> YouTube'da tarif izle
+    </a>
+    <div class="card-actions">
+      <button class="card-btn ${lk ? 'btn-lock-active' : ''}" data-action="lock" data-idx="${i}">
+        <i class="ti ti-${lk ? 'lock-open' : 'lock'}" aria-hidden="true"></i> ${lk ? 'Kilidi Aç' : 'Kilitle'}
+      </button>
+      <button class="card-btn" data-action="change" data-idx="${i}">
+        <i class="ti ti-refresh" aria-hidden="true"></i> Değiştir
+      </button>
+    </div>
+  </div>`;
+}
+
+function render() {
+  document.getElementById('daysGrid').innerHTML = Array.from({length:7}, (_,i) => buildCard(i)).join('');
+  renderShopping();
+  attachEvents();
+}
+
+function attachEvents() {
+  document.querySelectorAll('[data-action]').forEach(btn => {
+    btn.onclick = null;
+    btn.addEventListener('click', function() {
+      const idx = parseInt(this.dataset.idx);
+      if (this.dataset.action === 'lock') toggleLock(idx);
+      else if (this.dataset.action === 'change') changeDay(idx);
+    });
+  });
 }
 
 function renderShopping() {
   const cats = { 'Et & Balık':[], 'Sebze & Meyve':[], 'Bakliyat & Kuru Gıda':[], 'Süt Ürünleri & Yumurta':[], 'Diğer':[] };
   const etK = ['Dana','Tavuk','Levrek','Somon','Çupra','Hamsi','Uskumru','Pisi'];
-  const sebzeK = ['biber','domates','Domates','Patates','Kabak','Roka','Havuç','Kereviz','fasulye','Patlıcan','kiraz','Dereotu','Maydanoz','Nane','Kekik','Limon'];
-  const bakK = ['nohut','mercimek','Bulgur','Şehriye','Mısır unu','Pirinç','Kimyon'];
+  const sebzeK = ['biber','Domates','Patates','Kabak','Roka','Havuç','Kereviz','fasulye','Patlıcan','kiraz','Dereotu','Maydanoz','Nane','Kekik','Limon','Taze kekik'];
+  const bakK = ['nohut','mercimek','Bulgur','Şehriye','Mısır unu','Pirinç','Kimyon','Sumak','Tahin','Ceviz','Kuru üzüm'];
   const sutK = ['Yoğurt','Ayran','Yumurta'];
-  const allS = [...new Set(plan.flatMap(p => p.meal.shopping || []))];
-  allS.forEach(item => {
+  const all = [...new Set(state.plan.flatMap(p => p ? p.meal.shopping || [] : []))];
+  all.forEach(item => {
     if (etK.some(k => item.startsWith(k))) cats['Et & Balık'].push(item);
     else if (sebzeK.some(k => item.includes(k))) cats['Sebze & Meyve'].push(item);
     else if (bakK.some(k => item.includes(k))) cats['Bakliyat & Kuru Gıda'].push(item);
@@ -184,14 +215,19 @@ function renderShopping() {
   const icons = { 'Et & Balık':'ti-meat','Sebze & Meyve':'ti-plant','Bakliyat & Kuru Gıda':'ti-package','Süt Ürünleri & Yumurta':'ti-egg','Diğer':'ti-shopping-cart' };
   document.getElementById('shoppingGrid').innerHTML = Object.entries(cats)
     .filter(([,v]) => v.length)
-    .map(([cat, items]) => `<div class="shop-cat">
-      <div class="shop-cat-title"><i class="ti ${icons[cat]}" style="font-size:14px" aria-hidden="true"></i>${cat}</div>
-      ${items.map((item, idx) => `<div class="shop-item" id="si${cat.replace(/\s&\s/g,'').replace(/\s/g,'')}-${idx}">
-        <input type="checkbox" id="cb${cat.replace(/\s&\s/g,'').replace(/\s/g,'')}-${idx}" onchange="this.closest('.shop-item').classList.toggle('checked',this.checked)">
-        <label for="cb${cat.replace(/\s&\s/g,'').replace(/\s/g,'')}-${idx}">${item}</label>
-      </div>`).join('')}
-    </div>`).join('');
+    .map(([cat, items]) => {
+      const id = cat.replace(/\s/g,'').replace(/&/g,'');
+      return `<div class="shop-cat">
+        <div class="shop-cat-title"><i class="ti ${icons[cat]}" style="font-size:14px" aria-hidden="true"></i>${cat}</div>
+        ${items.map((item, j) => `<div class="shop-item" id="si-${id}-${j}">
+          <input type="checkbox" id="cb-${id}-${j}" onchange="this.closest('.shop-item').classList.toggle('checked',this.checked)">
+          <label for="cb-${id}-${j}">${item}</label>
+        </div>`).join('')}
+      </div>`;
+    }).join('');
 }
 
-generatePlan();
+// İlk yükleme
+buildPlan();
+render();
 </script>
