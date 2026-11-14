@@ -17,8 +17,10 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "output": "single",
-      "favicon": "./assets/images/favicon.png"
+      "output": "static",
+      "favicon": "./assets/images/favicon.png",
+      "themeColor": "#C8481F",
+      "backgroundColor": "#FAF7F2"
     },
     "plugins": [
       "expo-router",
@@ -33,7 +35,8 @@
     ],
     "experiments": {
       "typedRoutes": true,
-      "reactCompiler": true
+      "reactCompiler": true,
+      "baseUrl": "/menuko"
     }
   }
 }

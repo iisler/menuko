@@ -1,6 +1,6 @@
 # Menuko
 
-Haftalık yemek planı ve alışveriş listesi uygulaması. Expo (React Native) + TypeScript ile yazıldı; iOS, Android ve web'de çalışır.
+Haftalık yemek planı ve alışveriş listesi uygulaması. Tarayıcıda, iPhone'da ve Android'de çalışacak şekilde tek kod tabanından yazıldı.
 
 <p>
   <img src="docs/screenshots/plan.png" width="240" alt="Plan ekranı" />
@@ -15,7 +15,24 @@ Haftalık yemek planı ve alışveriş listesi uygulaması. Expo (React Native) 
 - **Ayarlar:** Kişi sayısı, günlere göre ana malzeme düzeni, istenmeyen malzemeler.
 - Plan, kilitler, işaretler ve tercihler cihazda saklanır. Açık ve koyu tema desteklenir.
 
-## Çalıştırma
+## Yayın (GitHub Pages)
+
+`main` dalına her değişiklik geldiğinde `.github/workflows/pages.yml` uygulamayı kendiliğinden derleyip yayınlar:
+
+**https://iisler.github.io/menuko/**
+
+Tek seferlik ayar: repo → Settings → Pages → *Build and deployment* → Source: **GitHub Actions**.
+
+### Masaüstüne / ana ekrana kaydetme
+
+- **Chrome / Edge (Mac, Windows):** adres çubuğundaki "Yükle" simgesi ya da menü → *Uygulamayı yükle*.
+- **Safari (Mac):** Dosya → *Dock'a Ekle*.
+- **iPhone:** Safari → Paylaş → *Ana Ekrana Ekle*.
+- **Android:** Chrome menüsü → *Ana ekrana ekle*.
+
+## Geliştirme
+
+Bilgisayarda çalıştırmak için Node.js gerekir (yalnızca geliştirme için; yayın otomatik yapılır).
 
 ```bash
 npm install
@@ -25,9 +42,7 @@ npm install
 npx expo start
 ```
 
-Açılan menüde `i` iOS simülatörünü, `a` Android emülatörünü, `w` tarayıcıyı açar. Telefonda denemek için Expo Go uygulamasıyla QR kodu okutun.
-
-## Kontroller
+Menüde `w` tarayıcıyı, `i` iOS simülatörünü, `a` Android emülatörünü açar.
 
 ```bash
 npm test
@@ -45,11 +60,12 @@ npm run lint
 
 | Yol | İçerik |
 | --- | --- |
-| `src/app/` | Ekranlar (Expo Router): `index` Plan, `shopping` Alışveriş, `settings` Ayarlar |
+| `src/app/` | Ekranlar: `index` Plan, `shopping` Alışveriş, `settings` Ayarlar |
 | `src/components/` | Ortak arayüz bileşenleri |
 | `src/data/meals.ts` | Yemekler ve malzeme kataloğu |
 | `src/lib/` | Plan oluşturma, alışveriş listesi ve tarih mantığı (testleriyle) |
 | `src/store/app-store.ts` | Uygulama durumu ve cihazda saklama |
+| `public/` | Web uygulaması bilgisi (manifest) ve ikonlar |
 | `legacy/index.html` | İlk HTML prototipi (referans için) |
 
 Yeni yemek eklemek için `src/data/meals.ts` içindeki `MEALS` listesine kayıt eklemek yeterlidir; miktarlar 3 kişi içindir.
