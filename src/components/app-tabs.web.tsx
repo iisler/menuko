@@ -1,0 +1,90 @@
+import {
+  TabList,
+  TabSlot,
+  TabTrigger,
+  Tabs,
+  type TabListProps,
+  type TabTriggerSlotProps,
+} from 'expo-router/ui';
+import { Pressable, StyleSheet, View } from 'react-native';
+
+import { ThemedText } from '@/components/themed-text';
+import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+
+export default function AppTabs() {
+  return (
+    <Tabs>
+      <TabSlot style={{ height: '100%' }} />
+      <TabList asChild>
+        {/* Sekmeler TabList'in doğrudan alt öğesinin çocukları olmalı; yoksa rotalar kaydedilmez. */}
+        <TabBar>
+          <TabTrigger name="index" href="/" asChild>
+            <TabButton>Plan</TabButton>
+          </TabTrigger>
+          <TabTrigger name="shopping" href="/shopping" asChild>
+            <TabButton>Alışveriş</TabButton>
+          </TabTrigger>
+          <TabTrigger name="settings" href="/settings" asChild>
+            <TabButton>Ayarlar</TabButton>
+          </TabTrigger>
+        </TabBar>
+      </TabList>
+    </Tabs>
+  );
+}
+
+function TabBar(props: TabListProps) {
+  const theme = useTheme();
+  return (
+    <View {...props} style={styles.bar}>
+      <View style={[styles.inner, { backgroundColor: theme.card, borderColor: theme.border }]}>
+        <ThemedText type="bodyBold" themeColor="tint" style={styles.brand}>
+          Menuko
+        </ThemedText>
+        {props.children}
+      </View>
+    </View>
+  );
+}
+
+function TabButton({ children, isFocused, ref: _ref, ...props }: TabTriggerSlotProps) {
+  const theme = useTheme();
+  return (
+    <Pressable
+      {...props}
+      style={[styles.tab, isFocused && { backgroundColor: theme.tintSoft }]}>
+      <ThemedText type="smallBold" themeColor={isFocused ? 'tint' : 'textSecondary'}>
+        {children}
+      </ThemedText>
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  bar: {
+    position: 'absolute',
+    top: 0,
+    width: '100%',
+    padding: Spacing.three,
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  inner: {
+    flexGrow: 1,
+    maxWidth: MaxContentWidth,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one,
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    borderRadius: Radius.large,
+    borderWidth: 1,
+  },
+  brand: { marginRight: 'auto' },
+  tab: {
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.two + Spacing.one,
+    borderRadius: Radius.medium,
+  },
+});

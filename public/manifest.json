@@ -1,0 +1,15 @@
+{
+  "name": "Menuko",
+  "short_name": "Menuko",
+  "description": "Haftalık yemek planı ve alışveriş listesi",
+  "lang": "tr",
+  "start_url": "/menuko/",
+  "scope": "/menuko/",
+  "display": "standalone",
+  "background_color": "#FAF7F2",
+  "theme_color": "#C8481F",
+  "icons": [
+    { "src": "/menuko/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/menuko/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

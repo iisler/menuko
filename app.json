@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "Menuko",
+    "slug": "menuko",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "menuko",
+    "userInterfaceStyle": "automatic",
+    "ios": {},
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#C8481F",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png",
+      "themeColor": "#C8481F",
+      "backgroundColor": "#FAF7F2"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#C8481F",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 140
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true,
+      "baseUrl": "/menuko"
+    }
+  }
+}
