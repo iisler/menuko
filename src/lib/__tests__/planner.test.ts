@@ -3,9 +3,12 @@ import { buildPlan, eligibleMeals, repairPlan, replaceDay } from '../planner';
 
 /** Tekrarlanabilir testler için basit sözde rastgele üreteç */
 function seeded(seed: number) {
+  // mulberry32: ardışık tohumlarda bile iyi dağılım verir
   return () => {
-    seed = (seed * 1664525 + 1013904223) % 4294967296;
-    return seed / 4294967296;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
 
@@ -34,7 +37,7 @@ describe('buildPlan', () => {
     for (let seed = 1; seed <= 50; seed++) {
       const plan = buildPlan(empty, unlocked, DEFAULT_PATTERN, [], seeded(seed));
       expect(new Set(plan).size).toBe(7);
-      plan.forEach((id, i) => expect(MEALS_BY_ID[id!].protein).toBe(DEFAULT_PATTERN[i]));
+      plan.forEach((id, i) => expect(DEFAULT_PATTERN[i]).toContain(MEALS_BY_ID[id!].protein));
     }
   });
 
@@ -62,7 +65,7 @@ describe('buildPlan', () => {
 
   it('bir türde uygun yemek kalmayınca başka türe geçer', () => {
     const fish: IngredientKey[] = ['levrek', 'somon', 'cupra', 'hamsi', 'uskumru', 'pisi'];
-    expect(eligibleMeals(fish, 'balik')).toHaveLength(0);
+    expect(eligibleMeals(fish, ['balik'])).toHaveLength(0);
     const plan = buildPlan(empty, unlocked, DEFAULT_PATTERN, fish, seeded(3));
     expect(plan.every((id) => id !== null && MEALS_BY_ID[id].protein !== 'balik')).toBe(true);
   });
@@ -77,7 +80,7 @@ describe('replaceDay', () => {
   it('her zaman farklı ve haftada olmayan bir yemek getirir', () => {
     const plan = buildPlan(empty, unlocked, DEFAULT_PATTERN, [], seeded(7));
     for (let seed = 1; seed <= 50; seed++) {
-      const next = replaceDay(plan, 2, 'balik', [], seeded(seed));
+      const next = replaceDay(plan, 2, ['balik'], [], seeded(seed));
       expect(next[2]).not.toBe(plan[2]);
       expect(new Set(next).size).toBe(7);
       expect(MEALS_BY_ID[next[2]!].protein).toBe('balik');
@@ -89,7 +92,7 @@ describe('replaceDay', () => {
 describe('repairPlan', () => {
   it('yalnızca artık uymayan günleri değiştirir', () => {
     const plan = buildPlan(empty, unlocked, DEFAULT_PATTERN, [], seeded(11));
-    const pattern = DEFAULT_PATTERN.map((p, i) => (i === 0 ? 'baklagil' : p));
+    const pattern = DEFAULT_PATTERN.map((p, i) => (i === 0 ? ['baklagil' as const] : p));
     const next = repairPlan(plan, unlocked, pattern, [], seeded(5));
     expect(MEALS_BY_ID[next[0]!].protein).toBe('baklagil');
     expect(next.slice(1)).toEqual(plan.slice(1));
@@ -103,5 +106,44 @@ describe('repairPlan', () => {
     for (const id of next) {
       expect(MEALS_BY_ID[id!].ingredients.some(([k]) => k === banned)).toBe(false);
     }
+  });
+});
+
+describe('günde birden fazla tür', () => {
+  const multi = DEFAULT_PATTERN.map((p, i) => (i === 0 ? ['dana' as const, 'balik' as const, 'baklagil' as const] : p));
+
+  it('seçilen türlerden birini getirir ve hepsi zamanla görülür', () => {
+    const seen = { dana: 0, balik: 0, baklagil: 0 };
+    for (let seed = 1; seed <= 600; seed++) {
+      const plan = buildPlan(empty, unlocked, multi, [], seeded(seed));
+      const protein = MEALS_BY_ID[plan[0]!].protein;
+      expect(['dana', 'balik', 'baklagil']).toContain(protein);
+      seen[protein as keyof typeof seen]++;
+      expect(new Set(plan).size).toBe(7);
+    }
+    // Türler yaklaşık eşit olasılıkla gelir (yemek sayısı fazla olan tür öne geçmez).
+    for (const count of Object.values(seen)) expect(count).toBeGreaterThan(130);
+  });
+
+  it('tek günü değiştirirken yine seçilen türlerde kalır', () => {
+    const plan = buildPlan(empty, unlocked, multi, [], seeded(2));
+    for (let seed = 1; seed <= 40; seed++) {
+      const next = replaceDay(plan, 0, multi[0], [], seeded(seed));
+      expect(['dana', 'balik', 'baklagil']).toContain(MEALS_BY_ID[next[0]!].protein);
+      expect(next[0]).not.toBe(plan[0]);
+    }
+  });
+
+  it('seçilen türlerden biri hâlâ uygunsa mevcut yemeğe dokunmaz', () => {
+    const plan = buildPlan(empty, unlocked, DEFAULT_PATTERN, [], seeded(4));
+    expect(repairPlan(plan, unlocked, multi, [], seeded(1))).toEqual(plan);
+  });
+
+  it('türlerden biri kapanınca yalnızca uymayan günü değiştirir', () => {
+    const plan = buildPlan(empty, unlocked, multi, [], seeded(9));
+    const narrowed = multi.map((p, i) => (i === 0 ? ['tavuk' as const] : p));
+    const next = repairPlan(plan, unlocked, narrowed, [], seeded(1));
+    expect(MEALS_BY_ID[next[0]!].protein).toBe('tavuk');
+    expect(next.slice(1)).toEqual(plan.slice(1));
   });
 });
