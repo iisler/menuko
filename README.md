@@ -12,7 +12,7 @@ Haftalık yemek planı ve alışveriş listesi uygulaması. Tarayıcıda, iPhone
 
 - **Plan:** 7 günlük menü; günleri kilitleme, tek günü değiştirme, kilitsiz günleri karıştırma, YouTube'da tarif arama.
 - **Alışveriş:** Plandan otomatik çıkan, kategorili liste. Aynı malzemeler tek satırda toplanır, miktarlar kişi sayısına göre hesaplanır, liste paylaşılabilir.
-- **Ayarlar:** Kişi sayısı, günlere göre ana malzeme düzeni, istenmeyen malzemeler.
+- **Ayarlar:** Kişi sayısı, günlere göre ana malzeme düzeni (bir günde birden fazla tür seçilebilir; o gün için aralarından rastgele biri gelir), istenmeyen malzemeler.
 - Plan, kilitler, işaretler ve tercihler cihazda saklanır. Açık ve koyu tema desteklenir.
 
 ## Yayın (GitHub Pages)

@@ -417,15 +417,12 @@ export const MEALS_BY_ID: Record<string, Meal> = Object.fromEntries(MEALS.map((m
 export const DAYS = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'];
 export const DAYS_SHORT = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
 
-export const DEFAULT_PATTERN: Protein[] = [
-  'dana',
-  'tavuk',
-  'balik',
-  'baklagil',
-  'dana',
-  'balik',
-  'tavuk',
-];
+/** Bir günün kabul ettiği ana malzeme türleri; birden fazlaysa o gün için aralarından rastgele biri gelir. */
+export type DayProteins = Protein[];
+
+export const DEFAULT_PATTERN: DayProteins[] = (
+  ['dana', 'tavuk', 'balik', 'baklagil', 'dana', 'balik', 'tavuk'] as Protein[]
+).map((protein) => [protein]);
 
 export function youtubeUrl(query: string): string {
   return (

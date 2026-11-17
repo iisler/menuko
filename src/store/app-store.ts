@@ -7,6 +7,7 @@ import {
   INGREDIENTS,
   MEALS_BY_ID,
   PROTEINS,
+  type DayProteins,
   type IngredientKey,
   type Protein,
 } from '../data/meals';
@@ -23,7 +24,8 @@ export interface AppState {
   /** Alışveriş listesinde işaretlenmiş malzemeler */
   checked: IngredientKey[];
   servings: number;
-  pattern: Protein[];
+  /** Her gün için kabul edilen ana malzeme türleri (en az bir tane) */
+  pattern: DayProteins[];
   excluded: IngredientKey[];
 }
 
@@ -34,7 +36,7 @@ function freshState(): AppState {
     locked,
     checked: [],
     servings: BASE_SERVINGS,
-    pattern: [...DEFAULT_PATTERN],
+    pattern: DEFAULT_PATTERN.map((day) => [...day]),
     excluded: [],
   };
 }
@@ -65,7 +67,12 @@ export function parseStored(raw: string | null): AppState | null {
     const isIngredient = (k: unknown): k is IngredientKey => typeof k === 'string' && k in INGREDIENTS;
     const seven = (v: unknown): v is unknown[] => Array.isArray(v) && v.length === 7;
     if (!seven(data.plan) || !seven(data.locked) || !seven(data.pattern)) return null;
-    if (!data.pattern.every((p: unknown) => PROTEINS.includes(p as Protein))) return null;
+    // Eski kayıtlarda her gün tek bir tür (metin) olarak tutuluyordu; yenilerde liste.
+    const pattern = data.pattern.map((day: unknown) => {
+      const list = Array.isArray(day) ? day : [day];
+      return PROTEINS.filter((p) => list.includes(p));
+    });
+    if (pattern.some((day: Protein[]) => day.length === 0)) return null;
     const plan: Plan = data.plan.map((id: unknown) =>
       typeof id === 'string' && id in MEALS_BY_ID ? id : null,
     );
@@ -73,7 +80,7 @@ export function parseStored(raw: string | null): AppState | null {
     return pruneChecked({
       plan,
       locked: data.locked.map((l: unknown, i: number) => l === true && plan[i] !== null),
-      pattern: data.pattern,
+      pattern,
       servings:
         servings >= MIN_SERVINGS && servings <= MAX_SERVINGS ? servings : BASE_SERVINGS,
       excluded: Array.isArray(data.excluded) ? data.excluded.filter(isIngredient) : [],
@@ -115,9 +122,14 @@ export const actions = {
   setServings(servings: number) {
     setState({ servings: Math.min(MAX_SERVINGS, Math.max(MIN_SERVINGS, servings)) });
   },
-  setDayProtein(day: number, protein: Protein) {
-    if (state.pattern[day] === protein) return;
-    const pattern = state.pattern.map((p, i) => (i === day ? protein : p));
+  /** Günün türlerini açıp kapatır; en az bir tür seçili kalmalıdır. */
+  toggleDayProtein(day: number, protein: Protein) {
+    const current = state.pattern[day];
+    const next = current.includes(protein)
+      ? current.filter((p) => p !== protein)
+      : PROTEINS.filter((p) => p === protein || current.includes(p));
+    if (next.length === 0) return;
+    const pattern = state.pattern.map((p, i) => (i === day ? next : p));
     setState({ pattern, plan: repairPlan(state.plan, state.locked, pattern, state.excluded) });
   },
   toggleExcluded(key: IngredientKey) {
@@ -144,6 +156,9 @@ function subscribe(listener: () => void) {
 }
 
 const getSnapshot = () => state;
+
+/** Testler için anlık durum. */
+export const getState = getSnapshot;
 
 export function useAppState(): AppState {
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);

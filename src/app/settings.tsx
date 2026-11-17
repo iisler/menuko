@@ -66,27 +66,37 @@ export default function SettingsScreen() {
 
       <Section
         title="Haftalık düzen"
-        hint="Her gün için ana malzemeyi seçin. Kilitli günler değişmez.">
+        hint="Her gün için bir ya da birkaç ana malzeme seçin. Birden fazla seçerseniz o gün için aralarından rastgele biri gelir. Kilitli günler değişmez.">
         <View style={[cardStyle, styles.patternCard]}>
           {DAYS.map((dayName, day) => (
             <View key={dayName} style={styles.patternRow}>
-              <ThemedText type="small" style={styles.patternDay}>
-                {dayName}
-              </ThemedText>
+              <View style={styles.patternHeader}>
+                <ThemedText type="small" style={styles.patternDay}>
+                  {dayName}
+                </ThemedText>
+                {pattern[day].length > 1 ? (
+                  <ThemedText type="caption" themeColor="textSecondary">
+                    {pattern[day].length} türden rastgele
+                  </ThemedText>
+                ) : null}
+              </View>
               <View style={[styles.segment, { backgroundColor: theme.backgroundElement }]}>
                 {PROTEINS.map((protein) => {
-                  const selected = pattern[day] === protein;
+                  const selected = pattern[day].includes(protein);
+                  // En az bir tür seçili kalmalı: son seçili tür kapatılamaz.
+                  const isLast = selected && pattern[day].length === 1;
                   const colors = theme.protein[protein];
                   return (
                     <Pressable
                       key={protein}
-                      accessibilityRole="radio"
-                      accessibilityState={{ selected }}
+                      accessibilityRole="checkbox"
+                      accessibilityState={{ checked: selected, disabled: isLast }}
+                      disabled={isLast}
                       accessibilityLabel={`${dayName}: ${PROTEIN_LABELS[protein]}`}
                       style={[styles.segmentItem, selected && { backgroundColor: colors.text }]}
                       onPress={() => {
                         tap();
-                        actions.setDayProtein(day, protein);
+                        actions.toggleDayProtein(day, protein);
                       }}>
                       <ThemedText
                         type="caption"
@@ -213,6 +223,7 @@ const styles = StyleSheet.create({
   dim: { opacity: 0.4 },
   patternCard: { gap: Spacing.two + Spacing.one },
   patternRow: { gap: Spacing.one + Spacing.half },
+  patternHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   patternDay: { fontWeight: 600 },
   segment: { flexDirection: 'row', borderRadius: Radius.medium, padding: 3, gap: 3 },
   segmentItem: {
