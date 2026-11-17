@@ -12,6 +12,11 @@ export default function AppTabs() {
       tintColor={theme.tint}
       labelStyle={{ selected: { color: theme.tint } }}>
       <NativeTabs.Trigger name="index">
+        <NativeTabs.Trigger.Label>Bugün</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="fork.knife" md="restaurant" />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="plan">
         <NativeTabs.Trigger.Label>Plan</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="calendar" md="calendar_month" />
       </NativeTabs.Trigger>

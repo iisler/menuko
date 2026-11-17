@@ -57,3 +57,34 @@ describe('toggleDayProtein', () => {
     expect(getState().plan[0]).toBe(before);
   });
 });
+
+describe('setDayMeal', () => {
+  beforeEach(() => actions.reset());
+
+  it('haftada olmayan yemeği güne koyar', () => {
+    const inPlan = new Set(getState().plan);
+    const outside = Object.keys(MEALS_BY_ID).find((id) => !inPlan.has(id))!;
+    actions.setDayMeal(1, outside);
+    expect(getState().plan[1]).toBe(outside);
+    expect(new Set(getState().plan).size).toBe(7);
+  });
+
+  it('başka günde olan yemeği seçince iki gün yer değiştirir', () => {
+    const [a, b] = [getState().plan[1], getState().plan[4]];
+    actions.setDayMeal(1, b!);
+    expect(getState().plan[1]).toBe(b);
+    expect(getState().plan[4]).toBe(a);
+  });
+
+  it('kilitli güne dokunmaz ve kilitli günden yemek almaz', () => {
+    const before = [...getState().plan];
+    actions.toggleLock(1);
+    actions.setDayMeal(1, before[4]!);
+    expect(getState().plan).toEqual(before);
+    actions.toggleLock(1);
+    actions.toggleLock(4);
+    actions.setDayMeal(1, before[4]!);
+    expect(getState().plan[4]).toBe(before[4]);
+    expect(getState().plan[1]).toBe(before[4]);
+  });
+});

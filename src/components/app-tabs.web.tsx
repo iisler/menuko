@@ -6,7 +6,7 @@ import {
   type TabListProps,
   type TabTriggerSlotProps,
 } from 'expo-router/ui';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
@@ -20,6 +20,9 @@ export default function AppTabs() {
         {/* Sekmeler TabList'in doğrudan alt öğesinin çocukları olmalı; yoksa rotalar kaydedilmez. */}
         <TabBar>
           <TabTrigger name="index" href="/" asChild>
+            <TabButton>Bugün</TabButton>
+          </TabTrigger>
+          <TabTrigger name="plan" href="/plan" asChild>
             <TabButton>Plan</TabButton>
           </TabTrigger>
           <TabTrigger name="shopping" href="/shopping" asChild>
@@ -36,12 +39,16 @@ export default function AppTabs() {
 
 function TabBar(props: TabListProps) {
   const theme = useTheme();
+  // Dar ekranda dört sekmeye yer açmak için marka yazısı gizlenir.
+  const showBrand = useWindowDimensions().width >= 480;
   return (
-    <View {...props} style={styles.bar}>
+    <View {...props} style={[styles.bar, { backgroundColor: theme.background }]}>
       <View style={[styles.inner, { backgroundColor: theme.card, borderColor: theme.border }]}>
-        <ThemedText type="bodyBold" themeColor="tint" style={styles.brand}>
-          Menuko
-        </ThemedText>
+        {showBrand ? (
+          <ThemedText type="bodyBold" themeColor="tint" style={styles.brand}>
+            Menuko
+          </ThemedText>
+        ) : null}
         {props.children}
       </View>
     </View>
@@ -75,6 +82,7 @@ const styles = StyleSheet.create({
     maxWidth: MaxContentWidth,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     gap: Spacing.one,
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,

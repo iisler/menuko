@@ -10,6 +10,7 @@ Haftalık yemek planı ve alışveriş listesi uygulaması. Tarayıcıda, iPhone
 
 ## Özellikler
 
+- **Bugün:** Açılış ekranı "Bugün ne pişirsem?". Plandaki bugünün yemeği en üstte; altında süreye (≤ 30 / ≤ 45 dk) ve türe göre "Şimdi ne pişireyim?" önerisi. Beğendiğin öneriyi tek dokunuşla bugünün planına koyabilirsin.
 - **Plan:** 7 günlük menü; günleri kilitleme, tek günü değiştirme, kilitsiz günleri karıştırma, YouTube'da tarif arama.
 - **Alışveriş:** Plandan otomatik çıkan, kategorili liste. Aynı malzemeler tek satırda toplanır, miktarlar kişi sayısına göre hesaplanır, liste paylaşılabilir.
 - **Ayarlar:** Kişi sayısı, günlere göre ana malzeme düzeni (bir günde birden fazla tür seçilebilir; o gün için aralarından rastgele biri gelir), istenmeyen malzemeler.
@@ -60,12 +61,12 @@ npm run lint
 
 | Yol | İçerik |
 | --- | --- |
-| `src/app/` | Ekranlar: `index` Plan, `shopping` Alışveriş, `settings` Ayarlar |
+| `src/app/` | Ekranlar: `index` Bugün, `plan` Haftalık plan, `shopping` Alışveriş, `settings` Ayarlar |
 | `src/components/` | Ortak arayüz bileşenleri |
 | `src/data/meals.ts` | Yemekler ve malzeme kataloğu |
-| `src/lib/` | Plan oluşturma, alışveriş listesi ve tarih mantığı (testleriyle) |
+| `src/lib/` | Plan oluşturma, öneri, alışveriş listesi ve tarih mantığı (testleriyle) |
 | `src/store/app-store.ts` | Uygulama durumu ve cihazda saklama |
 | `public/` | Web uygulaması bilgisi (manifest) ve ikonlar |
 | `legacy/index.html` | İlk HTML prototipi (referans için) |
 
-Yeni yemek eklemek için `src/data/meals.ts` içindeki `MEALS` listesine kayıt eklemek yeterlidir; miktarlar 3 kişi içindir.
+Havuzda 90 yemek var (dana 22, tavuk 22, balık 16, baklagil ve sebze 30). Yeni yemek eklemek için `src/data/meals.ts` içindeki `MEALS` listesine kayıt eklemek yeterlidir; miktarlar 3 kişi içindir. Mutfakta hep bulunan temel malzemeler (soğan, sarımsak, yağ, salça, baharat) listeye yazılmaz.

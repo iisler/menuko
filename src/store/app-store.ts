@@ -106,6 +106,18 @@ export const actions = {
   changeDay(day: number) {
     setState({ plan: replaceDay(state.plan, day, state.pattern[day], state.excluded) });
   },
+  /**
+   * Bir güne belirli bir yemeği koyar. Yemek haftanın kilitsiz başka bir gününde varsa
+   * iki gün yer değiştirir; böylece aynı yemek iki kez çıkmaz.
+   */
+  setDayMeal(day: number, mealId: string) {
+    if (!(mealId in MEALS_BY_ID) || state.locked[day] || state.plan[day] === mealId) return;
+    const other = state.plan.findIndex((id, i) => i !== day && id === mealId && !state.locked[i]);
+    const plan = state.plan.map((id, i) =>
+      i === day ? mealId : i === other ? state.plan[day] : id,
+    );
+    setState({ plan });
+  },
   toggleLock(day: number) {
     if (!state.plan[day]) return;
     setState({ locked: state.locked.map((l, i) => (i === day ? !l : l)) });

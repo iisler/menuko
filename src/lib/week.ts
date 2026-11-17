@@ -27,3 +27,10 @@ export function weekRangeLabel(now: Date = new Date()): string {
     ? `${monday.getDate()}–${end}`
     : `${monday.getDate()} ${MONTHS[monday.getMonth()]} – ${end}`;
 }
+
+const WEEKDAYS = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'];
+
+/** "Salı, 17 Kasım" */
+export function todayLabel(now: Date = new Date()): string {
+  return `${WEEKDAYS[todayIndex(now)]}, ${now.getDate()} ${MONTHS[now.getMonth()]}`;
+}

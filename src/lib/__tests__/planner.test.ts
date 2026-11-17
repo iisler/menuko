@@ -64,7 +64,8 @@ describe('buildPlan', () => {
   });
 
   it('bir türde uygun yemek kalmayınca başka türe geçer', () => {
-    const fish: IngredientKey[] = ['levrek', 'somon', 'cupra', 'hamsi', 'uskumru', 'pisi'];
+    // Her balık yemeğinin ilk malzemesi balığın kendisidir.
+    const fish = [...new Set(MEALS.filter((m) => m.protein === 'balik').map((m) => m.ingredients[0][0]))];
     expect(eligibleMeals(fish, ['balik'])).toHaveLength(0);
     const plan = buildPlan(empty, unlocked, DEFAULT_PATTERN, fish, seeded(3));
     expect(plan.every((id) => id !== null && MEALS_BY_ID[id].protein !== 'balik')).toBe(true);
@@ -145,5 +146,28 @@ describe('günde birden fazla tür', () => {
     const next = repairPlan(plan, unlocked, narrowed, [], seeded(1));
     expect(MEALS_BY_ID[next[0]!].protein).toBe('tavuk');
     expect(next.slice(1)).toEqual(plan.slice(1));
+  });
+});
+
+describe('yemek havuzu', () => {
+  it('her türde yeterince yemek var', () => {
+    for (const protein of ['dana', 'tavuk', 'balik', 'baklagil'] as const) {
+      expect(MEALS.filter((m) => m.protein === protein).length).toBeGreaterThanOrEqual(15);
+    }
+  });
+
+  it('balık yemeklerinin ilk malzemesi bir balıktır ve başka türde kullanılmaz', () => {
+    const fish = new Set(MEALS.filter((m) => m.protein === 'balik').map((m) => m.ingredients[0][0]));
+    for (const m of MEALS.filter((x) => x.protein !== 'balik')) {
+      expect(m.ingredients.some(([k]) => fish.has(k))).toBe(false);
+    }
+  });
+
+  it('her yemeğin alanları dolu', () => {
+    for (const m of MEALS) {
+      expect(m.main && m.side && m.note && m.query).toBeTruthy();
+      expect(m.minutes).toBeGreaterThan(0);
+      expect(m.ingredients.length).toBeGreaterThan(0);
+    }
   });
 });
