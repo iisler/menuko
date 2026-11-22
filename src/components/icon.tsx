@@ -10,6 +10,7 @@ const ICONS = {
   lock: { ios: 'lock.fill', android: 'lock', web: 'lock' },
   unlock: { ios: 'lock.open', android: 'lock_open', web: 'lock_open' },
   clock: { ios: 'clock', android: 'schedule', web: 'schedule' },
+  flame: { ios: 'flame', android: 'local_fire_department', web: 'local_fire_department' },
   play: { ios: 'play.rectangle.fill', android: 'smart_display', web: 'smart_display' },
   share: { ios: 'square.and.arrow.up', android: 'share', web: 'share' },
   check: { ios: 'checkmark', android: 'check', web: 'check' },

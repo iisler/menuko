@@ -12,6 +12,7 @@ Haftalık yemek planı ve alışveriş listesi uygulaması. Tarayıcıda, iPhone
 
 - **Bugün:** Açılış ekranı "Bugün ne pişirsem?". Plandaki bugünün yemeği en üstte; altında süreye (≤ 30 / ≤ 45 dk) ve türe göre "Şimdi ne pişireyim?" önerisi. Beğendiğin öneriyi tek dokunuşla bugünün planına koyabilirsin.
 - **Plan:** 7 günlük menü; günleri kilitleme, tek günü değiştirme, kilitsiz günleri karıştırma, YouTube'da tarif arama.
+- **Kalori:** Her yemeğin yanında kişi başı tahmini kalori (ana yemek + yanındakiler). Nasıl hesaplandığı aşağıda.
 - **Alışveriş:** Plandan otomatik çıkan, kategorili liste. Aynı malzemeler tek satırda toplanır, miktarlar kişi sayısına göre hesaplanır, liste paylaşılabilir.
 - **Ayarlar:** Kişi sayısı, günlere göre ana malzeme düzeni (bir günde birden fazla tür seçilebilir; o gün için aralarından rastgele biri gelir), istenmeyen malzemeler.
 - Plan, kilitler, işaretler ve tercihler cihazda saklanır. Açık ve koyu tema desteklenir.
@@ -64,9 +65,22 @@ npm run lint
 | `src/app/` | Ekranlar: `index` Bugün, `plan` Haftalık plan, `shopping` Alışveriş, `settings` Ayarlar |
 | `src/components/` | Ortak arayüz bileşenleri |
 | `src/data/meals.ts` | Yemekler ve malzeme kataloğu |
+| `src/data/nutrition.ts` | Malzeme kalori tablosu ve kalori hesabı |
 | `src/lib/` | Plan oluşturma, öneri, alışveriş listesi ve tarih mantığı (testleriyle) |
 | `src/store/app-store.ts` | Uygulama durumu ve cihazda saklama |
 | `public/` | Web uygulaması bilgisi (manifest) ve ikonlar |
 | `legacy/index.html` | İlk HTML prototipi (referans için) |
 
 Havuzda 90 yemek var (dana 22, tavuk 22, balık 16, baklagil ve sebze 30). Yeni yemek eklemek için `src/data/meals.ts` içindeki `MEALS` listesine kayıt eklemek yeterlidir; miktarlar 3 kişi içindir. Mutfakta hep bulunan temel malzemeler (soğan, sarımsak, yağ, salça, baharat) listeye yazılmaz.
+
+## Kalori hesabı
+
+Kalori `src/data/nutrition.ts` içinde, internet bağlantısı gerekmeden hesaplanır. Kişi başı değer üç parçanın toplamıdır:
+
+1. **Malzemeler:** her malzemenin gramı × 100 g'daki kalorisi. Değerler USDA FoodData Central ve TürKomp'taki çiğ / kuru ağırlık değerlerine dayanır. `adet`, `demet`, `kutu` gibi birimler gram karşılığına çevrilir (ör. 1 adet levrek ≈ 200 g fileto); bütün balıkta yalnızca yenilebilir kısım sayılır.
+2. **Mutfak temelleri:** listede olmayan yağ, soğan ve salça. Yağ pişirme yöntemine göre tahmin edilir: ızgara, buğulama, çorba 2; kızartma 5; zeytinyağlı 6; diğerleri 3 yemek kaşığı.
+3. **Yanındakiler:** `side` alanındaki pilav, ekmek, salata, yoğurt gibi eşlikçilerin porsiyon kalorisi. Malzeme listesinde zaten olan eşlikçi ikinci kez sayılmaz.
+
+(1) ve (2) 3 kişilik tarifin toplamıdır, 3'e bölünür. Sonuç 10'a yuvarlanır ve `~` ile gösterilir; tarif ve porsiyon farkı ±%15-20 sapma yaratabilir. Hesap malzeme listesindeki miktarlara dayandığı için paket boyu yazılan malzemeler (ör. 500 g makarna) sonucu yükseltir.
+
+Yeni bir malzeme eklenirse `NUTRITION` tablosuna da girilmesi gerekir; eksikse TypeScript hata verir. Yeni bir eşlikçi adı tanınmazsa `src/data/__tests__/nutrition.test.ts` testi uyarır.

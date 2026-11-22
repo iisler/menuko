@@ -4,12 +4,14 @@ import { Icon } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
 import { PROTEIN_LABELS, youtubeUrl, type Meal } from '@/data/meals';
+import { caloriesOf } from '@/data/nutrition';
 import { useTheme } from '@/hooks/use-theme';
 
-/** Yemeğin adı, yanındakiler, türü, süresi, tarif bağlantısı ve notu. */
+/** Yemeğin adı, yanındakiler, türü, süresi, kalorisi, tarif bağlantısı ve notu. */
 export function MealDetails({ meal, large }: { meal: Meal; large?: boolean }) {
   const theme = useTheme();
   const badge = theme.protein[meal.protein];
+  const kcal = caloriesOf(meal);
 
   return (
     <>
@@ -32,6 +34,15 @@ export function MealDetails({ meal, large }: { meal: Meal; large?: boolean }) {
           <Icon name="clock" size={13} color={theme.textSecondary} />
           <ThemedText type="caption" themeColor="textSecondary">
             {meal.minutes} dk
+          </ThemedText>
+        </View>
+        <View
+          style={styles.inline}
+          accessible
+          accessibilityLabel={`Kişi başı yaklaşık ${kcal.total} kalori: ana yemek ${kcal.main}, yanındakiler ${kcal.side}`}>
+          <Icon name="flame" size={13} color={theme.textSecondary} />
+          <ThemedText type="caption" themeColor="textSecondary">
+            ~{kcal.total} kcal
           </ThemedText>
         </View>
         <Pressable
